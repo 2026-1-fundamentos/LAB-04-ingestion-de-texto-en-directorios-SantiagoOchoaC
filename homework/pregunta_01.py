@@ -71,3 +71,37 @@ def pregunta_01():
 
 
     """
+    import os
+    import pandas as pd
+    import zipfile
+    import glob
+
+    # Extraer el contenido del archivo zip y crear la carpeta "input"
+    with zipfile.ZipFile("files/input.zip", "r") as zip:
+        zip.extractall("files/")
+
+    # Crear la carpeta "output" si no existe
+    os.makedirs("files/output", exist_ok=True)
+
+    # Función para procesar los archivos y generar el DataFrame
+    def construir_dataframe(tipo):
+        data = []
+        for sentimiento in ["negative", "positive", "neutral"]:
+            # Construir la ruta para los archivos de texto
+            ruta = f"files/input/{tipo}/{sentimiento}/*.txt"
+            archivos = glob.glob(ruta)
+            # Leer cada archivo y agregar la frase y el sentimiento al DF
+            for archivo in archivos:
+                with open(archivo, "r", encoding="utf-8") as f:
+                    frase = f.read().strip()
+                    data.append({"phrase": frase, "target": sentimiento})
+        return pd.DataFrame(data)
+    
+    # Generar los DataFrames para train y test
+    train_df = construir_dataframe("train")
+    test_df = construir_dataframe("test")
+
+    # Guardar los DataFrames en archivos CSV
+    train_df.to_csv("files/output/train_dataset.csv", index=False)
+    test_df.to_csv("files/output/test_dataset.csv", index=False)
+
